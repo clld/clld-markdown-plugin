@@ -114,7 +114,6 @@ def markdown(req, s, permalink=True):
                     )
                 else:
                     log.error(f"Can't handle [{ml.objid}] ({table}).")
-                    print(dir(ml))
                     return f"{table} {ml.objid}"
             except:
                 return f"[{ml.objid}] ({table}) not rendered successfully."
@@ -125,7 +124,8 @@ def markdown(req, s, permalink=True):
             TocExtension(permalink=permalink),
             "markdown.extensions.fenced_code",
             "markdown.extensions.md_in_html",
-            "markdown.extensions.tables"
+            "markdown.extensions.tables",
+            "markdown.extensions.attr_list"
         ]
     )
     return md.convert(CLDFMarkdownLink.replace(s, repl)), md
