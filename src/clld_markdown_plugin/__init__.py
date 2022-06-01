@@ -126,7 +126,8 @@ def markdown(req, s, permalink=True):
             "markdown.extensions.fenced_code",
             "markdown.extensions.md_in_html",
             "markdown.extensions.tables",
-            "markdown.extensions.attr_list"
+            "markdown.extensions.attr_list",
+            "markdown.extensions.footnotes"
         ]
     )
     return md.convert(CLDFMarkdownLink.replace(s, repl))
