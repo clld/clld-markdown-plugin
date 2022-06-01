@@ -104,6 +104,7 @@ def markdown(req, s, permalink=True):
                     return function_map[table](req, ml.objid, **ml.parsed_url_query)
                 elif table in model_map:
                     decorate = model_map[table].get("decorate", None)
+                    print(ml.parsed_url_query)
                     return link_entity(
                         req,
                         ml.objid,
@@ -128,4 +129,4 @@ def markdown(req, s, permalink=True):
             "markdown.extensions.attr_list"
         ]
     )
-    return md.convert(CLDFMarkdownLink.replace(s, repl)), md
+    return md.convert(CLDFMarkdownLink.replace(s, repl))
