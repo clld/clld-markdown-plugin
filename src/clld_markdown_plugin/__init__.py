@@ -65,7 +65,7 @@ def render_cogset(req, objid):
                 <th>Language</th>
                 <th>Alignment</th>
             </%def>
-            <td>{h.link(request, item.counterpart)}</td>
+            <td>${h.link(request, item.counterpart)}</td>
             <td>${h.link(request, item.counterpart.language)}</td>
             <td>
                 <span class="alignment">${item.alignment}</span>
@@ -115,9 +115,9 @@ def markdown(req, s, permalink=True):
                     )
                 else:
                     log.error(f"Can't handle [{ml.objid}] ({table}).")
-                    return f"{table} {ml.objid}"
+                    return f"{table}:{ml.objid}"
             except:
-                return f"[{ml.objid}] ({table}) not rendered successfully."
+                return f"[{table}:{ml.objid}]"
         return ml
 
     md = Markdown(
