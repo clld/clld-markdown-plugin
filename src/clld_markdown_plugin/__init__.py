@@ -21,6 +21,7 @@ CUSTOM_MAP_PATH = "clld_own_markdown.py"
 def includeme(config):
     pass
 
+
 def comma_and_list(entries, sep1=", ", sep2=" and "):
     output = entries[0]
     for entry in entries[1:-1]:
@@ -28,10 +29,14 @@ def comma_and_list(entries, sep1=", ", sep2=" and "):
     output += sep2 + entries[-1]
     return output
 
+
 def link_entity(req, objid, route, model, decorate=None, ids=None, **kwargs):
     if objid == "__all__":
         if ids:
-            md_strs = [link_entity(req, mid, route, model, decorate) for mid in ids[0].split(",")]
+            md_strs = [
+                link_entity(req, mid, route, model, decorate)
+                for mid in ids[0].split(",")
+            ]
             return comma_and_list(md_strs)
         else:
             return "Table not yet implemented"
@@ -51,10 +56,13 @@ def link_entity(req, objid, route, model, decorate=None, ids=None, **kwargs):
 def render_ex(req, objid, ids=None):
     if objid == "__all__":
         if ids:
-            ex_strs = [render_ex(req, mid, subexample=True) for mid in ids[0].split(",")]
+            ex_strs = [
+                render_ex(req, mid, subexample=True) for mid in ids[0].split(",")
+            ]
             return ex_strs
     sentence = DBSession.query(Sentence).filter(Sentence.id == objid)[0]
     return rendered_sentence(sentence)
+
 
 def render_cogset(req, objid):
     ctx = DBSession.query(UnitParameter).get(objid)
@@ -110,7 +118,7 @@ def markdown(req, s, permalink=True):
                         model_map[table]["route"],
                         model_map[table]["model"],
                         decorate,
-                        **ml.parsed_url_query
+                        **ml.parsed_url_query,
                     )
                 else:
                     log.error(f"Can't handle [{ml.objid}] ({table}).")
@@ -126,7 +134,7 @@ def markdown(req, s, permalink=True):
             "markdown.extensions.md_in_html",
             "markdown.extensions.tables",
             "markdown.extensions.attr_list",
-            "markdown.extensions.footnotes"
+            "markdown.extensions.footnotes",
         ]
     )
     return md.convert(CLDFMarkdownLink.replace(s, repl))
