@@ -53,7 +53,7 @@ def link_entity(req, objid, route, model, decorate=None, ids=None, **kwargs):
             return decorate(md_str)
 
 
-def render_ex(req, objid, ids=None):
+def render_ex(req, objid, table, ids=None):
     if objid == "__all__":
         if ids:
             ex_strs = [
@@ -109,7 +109,7 @@ def markdown(req, s, permalink=True):
             try:
                 table = ml.table_or_fname
                 if table in function_map and "as_link" not in ml.parsed_url_query:
-                    return function_map[table](req, ml.objid, **ml.parsed_url_query)
+                    return function_map[table](req, ml.objid, table, **ml.parsed_url_query)
                 elif table in model_map:
                     decorate = model_map[table].get("decorate", None)
                     return link_entity(
