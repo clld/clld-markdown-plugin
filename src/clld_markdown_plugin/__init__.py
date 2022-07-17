@@ -64,9 +64,8 @@ def render_ex(req, objid, table, ids=None):
     return rendered_sentence(sentence)
 
 
-def render_cogset(req, objid):
+def render_cogset(req, objid, table, ids=None):
     ctx = DBSession.query(UnitParameter).get(objid)
-    return "<span>Hallo</span>"
     return f"""<%util:table items="{ctx.reflexes}" args="item"">
             <%def name="head()">
                 <th>Morph</th>
