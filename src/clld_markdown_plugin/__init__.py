@@ -7,6 +7,7 @@ from clld.db.meta import DBSession
 from clld.db.models import Language, Sentence, Source, Unit, Contribution, UnitParameter
 from clld.web.util.helpers import rendered_sentence
 from pathlib import Path
+import re
 
 log = logging.getLogger(__name__)
 
@@ -46,7 +47,7 @@ def link_entity(req, objid, route, model, decorate=None, ids=None, **kwargs):
         if isinstance(anchor, list):
             anchor = anchor[0]
         url = req.route_url(route, id=objid, _anchor=anchor, **kwargs)
-        md_str = f"[{entity.name}]({url})"
+        md_str = f"""<a class="{model.__tablename__.capitalize()}" href="{url}">{entity.name}</a>"""
         if decorate is None:
             return md_str
         else:
@@ -100,6 +101,7 @@ model_map = {
 model_map.update(custom_model_map)
 function_map = {"ExampleTable": render_ex, "CognatesetTable": render_cogset}
 function_map.update(custom_function_map)
+
 
 
 def markdown(req, s, permalink=True):
