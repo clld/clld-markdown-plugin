@@ -11,7 +11,7 @@ from clld.web.util.helpers import rendered_sentence
 log = logging.getLogger(__name__)
 
 __author__ = "Robert Forkel, Florian Matter"
-__email__ = "forkel@shh.mpg.de, florianmatter@gmail.com"
+__email__ = "robert_forkel@eva.mpg.de, florianmatter@gmail.com"
 __version__ = "0.0.1.dev"
 __all__ = ['markdown', 'includeme']
 
@@ -34,7 +34,8 @@ def includeme(config):
     function_map['CognatesetTable'] = render_cogset
 
     def full_spec(spec):
-        return spec if isinstance(spec, dict) else {'route': spec.__name__.lower(), 'model': spec}
+        return spec if isinstance(spec, dict) else {
+            'route': spec.__name__.lower() if spec else '', 'model': spec}
 
     for k, v in default_model_map.items():
         model_map[k] = full_spec(v)
@@ -69,24 +70,21 @@ def link_entity(req, objid, route, model, session, decorate=None, ids=None, **kw
             anchor = anchor[0]
         url = req.route_url(route, id=objid, _anchor=anchor, **kwargs)
         md_str = f"""<a class="{model.__tablename__.capitalize()}" href="{url}">{entity.name}</a>"""
-        if decorate is None:
-            return md_str
-        else:
-            return decorate(md_str)
+        return decorate(md_str) if decorate else md_str
 
 
-def render_ex(req, objid, table, ids=None):
+def render_ex(req, objid, table, session, ids=None, **kw):
     if objid == "__all__":
         if ids:
             ex_strs = [
-                render_ex(req, mid, subexample=True) for mid in ids[0].split(",")
+                render_ex(req, mid, table, session, subexample=True) for mid in ids[0].split(",")
             ]
-            return ex_strs
-    return rendered_sentence(DBSession.query(Sentence).filter(Sentence.id == objid)[0])
+            return '\n\n'.join(ex_strs)
+    return rendered_sentence(session.query(Sentence).filter(Sentence.id == objid)[0])
 
 
-def render_cogset(req, objid, table, ids=None):
-    ctx = DBSession.query(UnitParameter).get(objid)
+def render_cogset(req, objid, table, session, ids=None, **kw):
+    ctx = session.query(UnitParameter).get(objid)
     return f"""<%util:table items="{ctx.reflexes}" args="item"">
             <%def name="head()">
                 <th>Morph</th>
@@ -107,7 +105,8 @@ def markdown(req, s, permalink=True, session=None):
             try:
                 table = ml.table_or_fname
                 if table in function_map and "as_link" not in ml.parsed_url_query:
-                    return function_map[table](req, ml.objid, table, **ml.parsed_url_query)
+                    return function_map[table](
+                        req, ml.objid, table, session or DBSession, **ml.parsed_url_query)
                 elif table in model_map:
                     decorate = model_map[table].get("decorate", None)
                     return link_entity(
@@ -119,9 +118,8 @@ def markdown(req, s, permalink=True, session=None):
                         decorate=decorate,
                         **ml.parsed_url_query,
                     )
-                else:
-                    log.error(f"Can't handle [{ml.objid}] ({table}).")
-                    return f"{table}:{ml.objid}"
+                log.error(f"Can't handle [{ml.objid}] ({table}).")
+                return f"{table}:{ml.objid}"
             except:  # noqa: E722
                 return ml.label
         return ml

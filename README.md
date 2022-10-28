@@ -23,3 +23,19 @@ Then you can use `clld_markdown_plugin.markup` as follows in your templates:
 
 ${markdown(req, '[x](LanguageTable#cldf:abad1241)')|n}
 ```
+
+
+### Renderer callables
+
+The `function_map` configuration option for `clld_markdown_plugin` accepts a `dict` mapping
+CLDF component names to Python callables with the following signature:
+
+```python
+import clld.web.app
+
+
+def renderer(req: clld.web.app.ClldRequest, objid: str, table, session: clld.db.meta.DBSession, ids=None) -> str:
+    """
+    The returned `str` is interpreted as Markdown, so it may also include HTML.
+    """
+```
