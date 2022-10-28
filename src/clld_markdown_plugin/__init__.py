@@ -23,6 +23,7 @@ default_model_map = {
     "CognatesetTable": UnitParameter,
     "ParameterTable": UnitParameter,
     "sources.bib": Source,
+    "Source": Source,
 }
 model_map = {}
 function_map = {}
