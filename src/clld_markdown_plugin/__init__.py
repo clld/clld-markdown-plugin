@@ -115,6 +115,7 @@ def markdown(req, s: str, permalink=True, session=None) -> str:
             '{} must be included in the app config to use the "markdown" function.'.format(
                 __name__))
     settings = req.registry.settings[__name__]
+
     def repl(ml):
         if ml.is_cldf_link:
             try:
