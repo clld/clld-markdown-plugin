@@ -44,7 +44,7 @@ def settings(custom: typing.Optional[dict] = None) -> dict:
             for k, v in custom.get(key, {}).items():
                 res[key][k] = full_spec(v)
         else:
-            res.update(custom.get(key, {}))
+            res[key].update(custom.get(key, {}))
     return res
 
 
