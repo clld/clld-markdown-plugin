@@ -9,15 +9,16 @@ from clld_markdown_plugin import includeme
 
 
 @pytest.fixture
-def default_config():
-    includeme(None)
+def req_factory():
+    def req(settings=None):
+        config = includeme(types.SimpleNamespace(
+            registry=types.SimpleNamespace(settings={'clld_markdown_plugin': settings or {}})))
 
-
-@pytest.fixture
-def req():
-    return types.SimpleNamespace(
-        route_url=lambda *args, **kw: '/p{}'.format(
-            '#' + kw['_anchor'] if kw.get('_anchor') else ''))
+        return types.SimpleNamespace(
+            registry=config.registry,
+            route_url=lambda *args, **kw: '/p{}'.format(
+                '#' + kw['_anchor'] if kw.get('_anchor') else ''))
+    return req
 
 
 @pytest.fixture(scope='session')

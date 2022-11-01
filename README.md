@@ -27,7 +27,7 @@ ${markdown(req, '[x](LanguageTable#cldf:abad1241)')|n}
 
 ### Renderer callables
 
-The `function_map` configuration option for `clld_markdown_plugin` accepts a `dict` mapping
+The `renderer_map` configuration option for `clld_markdown_plugin` accepts a `dict` mapping
 CLDF component names to Python callables with the following signature:
 
 ```python
