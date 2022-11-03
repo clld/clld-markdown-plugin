@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 __author__ = "Robert Forkel, Florian Matter"
 __email__ = "robert_forkel@eva.mpg.de, florianmatter@gmail.com"
-__version__ = "0.0.1.dev"
+__version__ = "0.1.0"
 __all__ = ['markdown', 'includeme']
 
 
@@ -145,7 +145,4 @@ def markdown(req, s: str, session=None) -> str:
                 return ml.label
         return ml
 
-    md = Markdown(
-        extensions=settings["extensions"]
-    )
-    return md.convert(CLDFMarkdownLink.replace(s, repl))
+    return Markdown(extensions=settings["extensions"]).convert(CLDFMarkdownLink.replace(s, repl))
