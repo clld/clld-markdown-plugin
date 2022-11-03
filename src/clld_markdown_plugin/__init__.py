@@ -3,7 +3,6 @@ import typing
 import logging
 
 from markdown import Markdown
-from markdown.extensions.toc import TocExtension
 from cldfviz.text import CLDFMarkdownLink
 from clld.db.meta import DBSession
 from clld.db.models import common
