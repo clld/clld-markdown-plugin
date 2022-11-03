@@ -37,14 +37,20 @@ def settings(custom: typing.Optional[dict] = None) -> dict:
         'renderer_map': {
             "ExampleTable": render_ex,
         },
+        "extensions": [
+            "markdown.extensions.fenced_code",
+            "markdown.extensions.tables",
+        ]
     }
     custom = custom or {}
     for key in res:
         if key == 'model_map':
             for k, v in custom.get(key, {}).items():
                 res[key][k] = full_spec(v)
-        else:
+        elif key == "renderer_map":
             res[key].update(custom.get(key, {}))
+        elif key == "extensions":
+            res[key].extend(custom.get(key, []))
     return res
 
 
@@ -102,7 +108,7 @@ def render_ex(req, objid, table, session, ids=None, **kw):
     return rendered_sentence(session.query(common.Sentence).filter(common.Sentence.id == objid)[0])
 
 
-def markdown(req, s: str, permalink=True, session=None) -> str:
+def markdown(req, s: str, session=None) -> str:
     """
     :param req:
     :param s:
@@ -141,13 +147,6 @@ def markdown(req, s: str, permalink=True, session=None) -> str:
         return ml
 
     md = Markdown(
-        extensions=[
-            TocExtension(permalink=permalink),
-            "markdown.extensions.fenced_code",
-            "markdown.extensions.md_in_html",
-            "markdown.extensions.tables",
-            "markdown.extensions.attr_list",
-            "markdown.extensions.footnotes",
-        ]
+        extensions=settings["extensions"]
     )
     return md.convert(CLDFMarkdownLink.replace(s, repl))
