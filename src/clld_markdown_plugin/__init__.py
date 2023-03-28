@@ -3,7 +3,7 @@ import typing
 import logging
 
 from markdown import Markdown
-from cldfviz.text import CLDFMarkdownLink
+from pycldf.ext.markdown import CLDFMarkdownLink
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.web.util.helpers import rendered_sentence
@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 __author__ = "Robert Forkel, Florian Matter"
 __email__ = "robert_forkel@eva.mpg.de, florianmatter@gmail.com"
-__version__ = "0.1.1.dev0"
+__version__ = "0.2.0"
 __all__ = ['markdown', 'includeme']
 
 
