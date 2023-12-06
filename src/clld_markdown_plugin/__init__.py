@@ -83,7 +83,7 @@ def link_entity(req, objid, route, model, session, decorate=None, ids=None, **kw
     if objid == "__all__":
         if ids:
             md_strs = [
-                link_entity(req, mid, route, model, session, decorate=decorate)
+                link_entity(req, mid, route, model, session, decorate=decorate, **kwargs)
                 for mid in ids[0].split(",")
             ]
             return comma_and_list(md_strs)
@@ -96,8 +96,9 @@ def link_entity(req, objid, route, model, session, decorate=None, ids=None, **kw
         anchor = kwargs.pop("_anchor", None)
         if isinstance(anchor, list):
             anchor = anchor[0]
+        label = kwargs.pop("label", [None])[0]
         url = req.route_url(route, id=objid, _anchor=anchor, **kwargs)
-        md_str = f"""<a class="{model.__tablename__.capitalize()}" href="{url}">{entity.name}</a>"""
+        md_str = f"""<a class="{model.__tablename__.capitalize()}" href="{url}">{label or entity.name}</a>"""
         return decorate(md_str) if decorate else md_str
 
 
