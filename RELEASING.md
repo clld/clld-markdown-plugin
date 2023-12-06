@@ -1,7 +1,7 @@
 # Releasing clld-markdown-plugin
 
 - Do platform test via tox (making sure statement coverage is at 100%):
-```
+```shell
 tox -r
 ```
 

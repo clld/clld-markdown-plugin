@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 
 __author__ = "Robert Forkel, Florian Matter"
 __email__ = "robert_forkel@eva.mpg.de, florianmatter@gmail.com"
-__version__ = "0.2.1.dev0"
+__version__ = "0.3.0"
 __all__ = ['markdown', 'includeme']
 
 
@@ -93,12 +93,11 @@ def link_entity(req, objid, route, model, session, decorate=None, ids=None, **kw
             entity = session.query(model).filter(model.id == objid)[0]
         except IndexError:
             raise ValueError(objid)  # pragma: no cover
-        anchor = kwargs.pop("_anchor", None)
-        if isinstance(anchor, list):
-            anchor = anchor[0]
         label = kwargs.pop("label", [None])[0]
+        anchor = kwargs.pop("_anchor", [None])[0]
         url = req.route_url(route, id=objid, _anchor=anchor, **kwargs)
-        md_str = f"""<a class="{model.__tablename__.capitalize()}" href="{url}">{label or entity.name}</a>"""
+        md_str = '<a class="{}" href="{}">{}</a>'.format(
+            model.__tablename__.capitalize(), url, label or entity.name)
         return decorate(md_str) if decorate else md_str
 
 
