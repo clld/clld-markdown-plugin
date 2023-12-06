@@ -7,6 +7,7 @@ from pycldf.ext.markdown import CLDFMarkdownLink
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.web.util.helpers import rendered_sentence
+from clld.web.util.htmllib import HTML, literal
 
 log = logging.getLogger(__name__)
 
@@ -88,7 +89,10 @@ def link_entity(req, objid, route, model, session, decorate=None, ids=None, **kw
             return comma_and_list(md_strs)
         raise NotImplementedError("Table not yet implemented")  # pragma: no cover
     else:
-        entity = session.query(model).filter(model.id == objid)[0]
+        try:
+            entity = session.query(model).filter(model.id == objid)[0]
+        except IndexError:
+            raise ValueError(objid)  # pragma: no cover
         anchor = kwargs.pop("_anchor", None)
         if isinstance(anchor, list):
             anchor = anchor[0]
@@ -120,6 +124,7 @@ def markdown(req, s: str, session=None) -> str:
             '{} must be included in the app config to use the "markdown" function.'.format(
                 __name__))
     settings = req.registry.settings[__name__]
+    source_ids = set()
 
     def repl(ml):
         if ml.is_cldf_link:
@@ -130,6 +135,17 @@ def markdown(req, s: str, session=None) -> str:
                         req, ml.objid, table, session or DBSession, **ml.parsed_url_query)
                 elif table in settings['model_map']:
                     decorate = settings['model_map'][table].get("decorate", None)
+                    kw = {k: v for k, v in ml.parsed_url_query.items()}
+                    if table == 'Source':
+                        if ml.objid != '__all__':
+                            source_ids.add(ml.objid)
+                        elif 'cited_only' in ml.parsed_url.query:
+                            model = settings['model_map'][table]["model"]
+                            return HTML.ul(*[
+                                HTML.li(literal(
+                                    (session or DBSession).query(model)
+                                    .filter(model.id == sid)[0].bibtex().text()))
+                                for sid in sorted(source_ids)])
                     return link_entity(
                         req,
                         ml.objid,
@@ -137,7 +153,7 @@ def markdown(req, s: str, session=None) -> str:
                         settings['model_map'][table]["model"],
                         session or DBSession,
                         decorate=decorate,
-                        **ml.parsed_url_query,
+                        **kw,
                     )
                 log.error(f"Can't handle [{ml.objid}] ({table}).")
                 return f"{table}:{ml.objid}"

@@ -31,6 +31,8 @@ def dbsession():
     DBSession.add(common.Language(id='l2', name='Language 2'))
     DBSession.add(common.Language(id='l3', name='Language 3'))
     DBSession.add(common.Sentence(id='s1', name="Ein Satz", description="A sentence", language=l1))
+    DBSession.add(common.Source(id='Meier2012', name="Meier"))
+    DBSession.add(common.Source(id='Mueller2012', name="Mueller"))
     DBSession.flush()
     yield DBSession
     DBSession.close()
