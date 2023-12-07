@@ -3,12 +3,15 @@ import typing
 import logging
 
 from markdown import Markdown
+from markdown import markdown as base_markdown
 from pycldf.ext.markdown import CLDFMarkdownLink
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.web.util.helpers import rendered_sentence
 from clld.web.util.htmllib import HTML, literal
+import clldutils
 
+WITH_MARKDOWN = tuple(map(int, clldutils.__version__.split('.')[:2])) >= (3, 21)
 log = logging.getLogger(__name__)
 
 __author__ = "Robert Forkel, Florian Matter"
@@ -127,6 +130,11 @@ def markdown(req, s: str, session=None) -> str:
     source_ids = set()
 
     def repl(ml):
+        def ref(src):  # pragma: no cover
+            if WITH_MARKDOWN:
+                return base_markdown(src.bibtex().text(markdown=True))
+            return src.bibtex().text()
+
         if ml.is_cldf_link:
             try:
                 table = ml.table_or_fname
@@ -142,9 +150,9 @@ def markdown(req, s: str, session=None) -> str:
                         elif 'cited_only' in ml.parsed_url.query:
                             model = settings['model_map'][table]["model"]
                             return HTML.ul(*[
-                                HTML.li(literal(
-                                    (session or DBSession).query(model)
-                                    .filter(model.id == sid)[0].bibtex().text()))
+                                HTML.li(literal(ref(
+                                    (session or DBSession).query(model).filter(model.id == sid)[0]
+                                )))
                                 for sid in sorted(source_ids)])
                     return link_entity(
                         req,
