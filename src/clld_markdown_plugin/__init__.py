@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 __author__ = "Robert Forkel, Florian Matter"
 __email__ = "robert_forkel@eva.mpg.de, florianmatter@gmail.com"
-__version__ = "0.4.0"
+__version__ = "0.4.1.dev0"
 __all__ = ['markdown', 'includeme']
 
 
