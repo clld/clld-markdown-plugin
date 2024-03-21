@@ -29,3 +29,10 @@ def test_markdown(model_map, renderer_map, md, substring, notsubstring, dbsessio
     assert substring in res
     if notsubstring:
         assert notsubstring not in res
+
+
+def test_markdown_keep_labels(dbsession, req_factory):
+    res = markdown(req_factory(), '[xyz](LanguageTable#cldf:l1)')
+    assert 'xyz' not in res
+    res = markdown(req_factory(dict(keep_link_labels=True)), '[xyz](LanguageTable#cldf:l1)')
+    assert 'xyz' in res

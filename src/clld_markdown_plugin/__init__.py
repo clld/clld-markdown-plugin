@@ -43,7 +43,8 @@ def settings(custom: typing.Optional[dict] = None) -> dict:
         "extensions": [
             "markdown.extensions.fenced_code",
             "markdown.extensions.tables",
-        ]
+        ],
+        "keep_link_labels": False,
     }
     custom = custom or {}
     for key in res:
@@ -54,6 +55,8 @@ def settings(custom: typing.Optional[dict] = None) -> dict:
             res[key].update(custom.get(key, {}))
         elif key == "extensions":
             res[key].extend(custom.get(key, []))
+        elif key in custom:
+            res[key] = custom[key]
     return res
 
 
@@ -144,6 +147,8 @@ def markdown(req, s: str, session=None) -> str:
                 elif table in settings['model_map']:
                     decorate = settings['model_map'][table].get("decorate", None)
                     kw = {k: v for k, v in ml.parsed_url_query.items()}
+                    if ml.label and settings['keep_link_labels']:
+                        kw.setdefault('label', [ml.label])
                     if table == 'Source':
                         if ml.objid != '__all__':
                             source_ids.add(ml.objid)
