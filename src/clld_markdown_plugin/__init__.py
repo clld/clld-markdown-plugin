@@ -1,10 +1,12 @@
 """Top-level package for clld-markdown-plugin."""
-import typing
 import logging
+from collections.abc import Sequence
+from typing import Optional, Callable, Any
 
 from markdown import Markdown
 from markdown import markdown as base_markdown
 from pycldf.ext.markdown import CLDFMarkdownLink
+from clld.web.app import ClldRequest
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.web.util.helpers import rendered_sentence
@@ -20,7 +22,8 @@ __version__ = "0.5.1.dev0"
 __all__ = ['markdown', 'includeme']
 
 
-def settings(custom: typing.Optional[dict] = None) -> dict:
+def settings(custom: Optional[dict[str, Any]] = None) -> dict[str, Any]:
+    """Settings relevant for rendering CLDF Markdown."""
     def full_spec(spec):
         return spec if isinstance(spec, dict) else {
             'route': spec.__name__.split('.')[-1].lower() if spec else '', 'model': spec}
@@ -47,7 +50,7 @@ def settings(custom: typing.Optional[dict] = None) -> dict:
         "keep_link_labels": False,
     }
     custom = custom or {}
-    for key in res:
+    for key in res:  # pylint: disable=consider-using-dict-items
         if key == 'model_map':
             for k, v in custom.get(key, {}).items():
                 res[key][k] = full_spec(v)
@@ -78,41 +81,48 @@ def includeme(config):
     return config
 
 
-def comma_and_list(entries, sep1=", ", sep2=" and "):
+def _comma_and_list(entries: Sequence[str], sep1: str = ", ", sep2: str = " and ") -> str:
     output = entries[0]
     for entry in entries[1:-1]:
         output += sep1 + entry
     return output + sep2 + entries[-1]
 
 
-def link_entity(req, objid, route, model, session, decorate=None, ids=None, **kwargs):
+def link_entity(  # pylint: disable=R0913,R0917
+        req: ClldRequest,
+        objid: str,
+        route: str,
+        model: type,
+        session,
+        decorate: Optional[Callable[[str], str]] = None,
+        ids: Optional[Sequence[str]] = None,
+        **kwargs,
+) -> str:
+    """Render a CLDF Markdown link as HTML."""
     if objid == "__all__":
         if ids:
-            md_strs = [
+            return _comma_and_list([
                 link_entity(req, mid, route, model, session, decorate=decorate, **kwargs)
                 for mid in ids[0].split(",")
-            ]
-            return comma_and_list(md_strs)
+            ])
         raise NotImplementedError("Table not yet implemented")  # pragma: no cover
-    else:
-        try:
-            entity = session.query(model).filter(model.id == objid)[0]
-        except IndexError:
-            raise ValueError(objid)  # pragma: no cover
-        label = kwargs.pop("label", [None])[0]
-        anchor = kwargs.pop("_anchor", [None])[0]
-        url = req.route_url(route, id=objid, _anchor=anchor, **kwargs)
-        md_str = '<a class="{}" href="{}">{}</a>'.format(
-            model.__tablename__.capitalize(), url, label or entity.name)
-        return decorate(md_str) if decorate else md_str
+    try:
+        entity = session.query(model).filter(model.id == objid)[0]
+    except IndexError as e:
+        raise ValueError(objid) from e  # pragma: no cover
+    label = kwargs.pop("label", [None])[0] or entity.name
+    anchor = kwargs.pop("_anchor", [None])[0]
+    url = req.route_url(route, id=objid, _anchor=anchor, **kwargs)
+    md_str = f'<a class="{model.__tablename__.capitalize()}" href="{url}">{label}</a>'
+    return decorate(md_str) if decorate else md_str
 
 
-def render_ex(req, objid, table, session, ids=None, **kw):
+def render_ex(req: ClldRequest, objid: str, table: str, session, ids=None, **_) -> str:
+    """Render an IGT example."""
     if objid == "__all__":
         if ids:
             ex_strs = [
-                render_ex(req, mid, table, session, subexample=True) for mid in ids[0].split(",")
-            ]
+                render_ex(req, mid, table, session, subexample=True) for mid in ids[0].split(",")]
             return '\n\n'.join(ex_strs)
     return rendered_sentence(session.query(common.Sentence).filter(common.Sentence.id == objid)[0])
 
@@ -127,9 +137,8 @@ def markdown(req, s: str, session=None) -> str:
     """
     if __name__ not in req.registry.settings:  # pragma: no cover
         raise KeyError(
-            '{} must be included in the app config to use the "markdown" function.'.format(
-                __name__))
-    settings = req.registry.settings[__name__]
+            f'{__name__} must be included in the app config to use the "markdown" function.')
+    settings_ = req.registry.settings[__name__]
     source_ids = set()
 
     def repl(ml):
@@ -141,19 +150,19 @@ def markdown(req, s: str, session=None) -> str:
         if ml.is_cldf_link:
             try:
                 table = ml.table_or_fname
-                if table in settings['renderer_map'] and "as_link" not in ml.parsed_url_query:
-                    return settings['renderer_map'][table](
+                if table in settings_['renderer_map'] and "as_link" not in ml.parsed_url_query:
+                    return settings_['renderer_map'][table](
                         req, ml.objid, table, session or DBSession, **ml.parsed_url_query)
-                elif table in settings['model_map']:
-                    decorate = settings['model_map'][table].get("decorate", None)
-                    kw = {k: v for k, v in ml.parsed_url_query.items()}
-                    if ml.label and settings['keep_link_labels']:
+                if table in settings_['model_map']:
+                    decorate = settings_['model_map'][table].get("decorate", None)
+                    kw = dict(ml.parsed_url_query.items())
+                    if ml.label and settings_['keep_link_labels']:
                         kw.setdefault('label', [ml.label])
                     if table == 'Source':
                         if ml.objid != '__all__':
                             source_ids.add(ml.objid)
                         elif 'cited_only' in ml.parsed_url.query:
-                            model = settings['model_map'][table]["model"]
+                            model = settings_['model_map'][table]["model"]
                             return HTML.ul(*[
                                 HTML.li(literal(ref(
                                     (session or DBSession).query(model).filter(model.id == sid)[0]
@@ -162,16 +171,16 @@ def markdown(req, s: str, session=None) -> str:
                     return link_entity(
                         req,
                         ml.objid,
-                        settings['model_map'][table]["route"],
-                        settings['model_map'][table]["model"],
+                        settings_['model_map'][table]["route"],
+                        settings_['model_map'][table]["model"],
                         session or DBSession,
                         decorate=decorate,
                         **kw,
                     )
-                log.error(f"Can't handle [{ml.objid}] ({table}).")
+                log.error("Can't handle [%s] (%s).", ml.objid, table)
                 return f"{table}:{ml.objid}"
-            except:  # noqa: E722
+            except:  # noqa: E722  # pylint: disable=W0702
                 return ml.label
         return ml
 
-    return Markdown(extensions=settings["extensions"]).convert(CLDFMarkdownLink.replace(s, repl))
+    return Markdown(extensions=settings_["extensions"]).convert(CLDFMarkdownLink.replace(s, repl))
