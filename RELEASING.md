@@ -1,45 +1,48 @@
 # Releasing clld-markdown-plugin
 
+- Run ruff
+  ```shell
+  ruff check src/
+  ```
+
 - Do platform test via tox (making sure statement coverage is at 100%):
-```shell
-tox -r
-```
+  ```shell
+  tox -r
+  ```
 
 - Change version number in
-  - `setup.cfg`
+  - `pyproject.toml`
   - `src/clld_markdown_plugin/__init__.py`
 
 - Create the release commit:
-```shell
-git commit -a -m "release <VERSION>"
-```
+  ```shell
+  git commit -a -m "release <VERSION>"
+  ```
 
 - Create a release tag:
-```shell
-git tag -a v<VERSION> -m "<VERSION> release"
-```
+  ```shell
+  git tag -a v<VERSION> -m "<VERSION> release"
+  ```
 
 - Release to PyPI:
-```shell
-git checkout tags/v<VERSION>
-python setup.py clean --all
-rm dist/*
-python -m build -n
-twine upload dist/*
-```
+  ```shell
+  rm dist/*
+  python -m build -n
+  twine upload dist/*
+  ```
 
 - Push to github:
-```shell
-git push origin
-git push --tags origin
-```
+  ```shell
+  git push origin
+  git push --tags origin
+  ```
 
 - Append `.dev0` to the version number for the new development cycle.
-  - `setup.cfg`
+  - `pyproject.toml`
   - `src/clld_markdown_plugin/__init__.py`
 
 - Commit/push the version change:
-```shell
-git commit -a -m "bump version for development"
-git push origin
-```
+  ```shell
+  git commit -a -m "bump version for development"
+  git push origin
+  ```
