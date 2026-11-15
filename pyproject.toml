@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "clld-markdown-plugin"
-version = "1.0.1.dev0"
+version = "1.1.0"
 description = "A clld plugin to render CLDF markdown in clld apps."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -63,8 +63,10 @@ exclude = [".tox"]
 
 [tool.ruff.lint]
 # E/F match default Flake8; D enables pydocstyle checks (since you ignored specific D rules)
-select = ["UP", "N", "C90", "PL", "E", "F"]
+select = ["UP", "N", "C90", "PL", "E", "F", "D"]
 ignore = [
+    "D211",
+    "D213",
 ]
 
 [tool.pytest.ini_options]

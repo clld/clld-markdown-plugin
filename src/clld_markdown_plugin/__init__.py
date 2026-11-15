@@ -18,12 +18,12 @@ log = logging.getLogger(__name__)
 
 __author__ = "Robert Forkel, Florian Matter"
 __email__ = "robert_forkel@eva.mpg.de, florianmatter@gmail.com"
-__version__ = "1.0.1.dev0"
+__version__ = "1.1.0"
 __all__ = ['markdown', 'includeme']
 
 
 def settings(custom: dict[str, Any] | None = None) -> dict[str, Any]:
-    """Settings relevant for rendering CLDF Markdown."""
+    """Get settings relevant for rendering CLDF Markdown."""
     def full_spec(spec):
         return spec if isinstance(spec, dict) else {
             'route': spec.__name__.split('.')[-1].lower() if spec else '', 'model': spec}
@@ -64,8 +64,7 @@ def settings(custom: dict[str, Any] | None = None) -> dict[str, Any]:
 
 
 def includeme(config):
-    """
-    Called when the plugin is included in a clld app via `config.include('clld_markdown_plugin')`.
+    """Call to include the plugin in a clld app `config.include('clld_markdown_plugin')`.
 
     Merges default and custom configuration for the plugin in the app's deployment settings under
     key 'clld_markdown_plugin'.
@@ -169,13 +168,7 @@ def _repl(
 
 
 def markdown(req, s: str, session=None) -> str:
-    """
-    :param req:
-    :param s:
-    :param permalink:
-    :param session:
-    :return: `str` containing HTML formatting.
-    """
+    """:return: `str` containing HTML formatting."""
     if __name__ not in req.registry.settings:  # pragma: no cover
         raise KeyError(
             f'{__name__} must be included in the app config to use the "markdown" function.')
